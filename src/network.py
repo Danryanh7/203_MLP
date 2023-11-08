@@ -30,7 +30,7 @@ class Network(object):
             x = sigmoid(np.dot(w, x) + b)
         output = x
         return output
-    def stochastic_gradient_descent(self, xTrain: tuple, epochs: int, batchSize, nu, xTest=None):
+    def stochastic_gradient_descent(self, xTrain: tuple, epochs: int, batchSize: int, nu: int, xTest: tuple=None):
         """
         Implementing stochastic gradient descent
         xTrain: Tuple of the training input and the desired output
@@ -45,7 +45,9 @@ class Network(object):
         for i in range(epochs):
             # Randomly shuffle the training data
             random.shuffle(xTrain)
+            # Partition into batches
             batches = [xTrain[k:k+batchSize] for k in range(0, n, batchSize)]
+            # For each batch apply gradient descent
             for batch in batches:
                 # Apply gradient descent
                 self.updateBatch(batch, nu)
@@ -53,6 +55,28 @@ class Network(object):
                 print(f"Epoch {i}: {self.evaluate(xTest)} / {nTest}")
             else:
                 print(f"Epoch {i} complete")
+
+    def updateBatch(self, batch: List[tuple], nu: int):
+        """
+        Update the network's weights and biases by applying gradient descent
+        using backpropagation to a single batch
+        batch: a list of tuples (x, y) representing the training inputs and the desired outputs
+        nu: the learning rate
+        """
+        nablaB = [np.zeros(b.shape) for b in self.biases]
+        nablaW = [np.zeros(w.shape) for w in self.weights]
+
+        for x, y in batch:
+            # Returns the gradient for the cost associated with each training example
+            deltaNablaB, deltaNablaW = self.backpropagation(x, y)
+            nablaB = [nb + dnb for nb, dnb in zip(nablaB, deltaNablaB)]
+            nablaW = [nw + dnw for nw, dnw in zip(nablaW, deltaNablaW)]
+        self.weights = [w - (nu / len(batch)) * nw for w, nw in zip(self.weights, nablaW)]
+        self.biases = [b - (nu / len(batch)) * nb for b, nb in zip(self.biases, nablaB)]
+
+    def backpropagation(self, x, y):
+        return
+
 
 
 
