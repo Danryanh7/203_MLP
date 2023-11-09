@@ -1,7 +1,7 @@
 import numpy as np
 import random
 from types import List
-from utils import sigmoid
+from utils import sigmoid, dSigmoid
 
 class Network(object):
     """
@@ -30,6 +30,13 @@ class Network(object):
             x = sigmoid(np.dot(w, x) + b)
         output = x
         return output
+    
+    def dCost(self, oA, y):
+        """
+        Returns a vector of partial(Cx)/partial(a) for the output activations
+        """
+        return (oA-y)
+
     def stochastic_gradient_descent(self, xTrain: tuple, epochs: int, batchSize: int, nu: int, xTest: tuple=None):
         """
         Implementing stochastic gradient descent
@@ -75,8 +82,32 @@ class Network(object):
         self.biases = [b - (nu / len(batch)) * nb for b, nb in zip(self.biases, nablaB)]
 
     def backpropagation(self, x, y):
-        return
+        """
+        Returns nablaB and nablaW representing components for the gradient for the cost function Cx.
+        """
+        nablaB = [np.zeros(b.shape) for b in self.biases]
+        nablaW = [np.zeros(w.shape) for w in self.weights]
 
+        # Forward Pass
+        a = x
+        aList = [x] # Stores all the activations, layer by layer
 
+        zs = [] # Stores all the z vectors, layer by layer
+        for b, w in zip(self.biases, self.weights):
+            z = np.dot(w, a) + b
+            zs.append(z)
+            a = sigmoid(z)
+            aList.append(a)
+        
+        # Backward Pass
+        delta = self.dCost(aList[-1], y) * dSigmoid(zs[-1])
+        nablaB[-1] = delta
+        nablaW[-1] = np.dot(delta, aList[-2].transpose())
 
-
+        for l in range(2, self.nLayers):
+            z = zs[-l]
+            ds = dSigmoid(z)
+            delta = np.dot(self.weights[-l+1].transpose(), delta) * ds
+            nablaB[-l] = delta
+            nablaW[-l] = np.dot(delta, aList[-l-1].transpose())
+        return (nablaB, nablaW)
