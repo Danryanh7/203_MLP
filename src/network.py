@@ -1,3 +1,4 @@
+# To understand the architecture of MLPs...
 import numpy as np
 import random
 from types import List
